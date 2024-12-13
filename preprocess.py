@@ -125,22 +125,53 @@ class DataSplitter:
         df_train_phone = pd.concat([df_phone_common_train, df_phone_only_train])
         df_test_phone = pd.concat([df_phone_common_test, df_phone_only_test])
         
-        return df_train_internet, df_test_internet, df_train_phone, df_test_phone
+        #full services splits
+        self.df_train_internet = df_train_internet
+        self.df_test_internet = df_test_internet
+        self.df_train_phone = df_train_phone
+        self.df_test_phone = df_test_phone
+
+        #only services splits
+        self.df_internet_only_train = df_internet_only_train
+        self.df_internet_only_test = df_internet_only_test
+        self.df_phone_only_train = df_phone_only_train
+        self.df_phone_only_test = df_phone_only_test
+    
+    def get_only_service_split(self, service: str):
+        if service == 'Internet':
+            return self.df_internet_only_train, self.df_internet_only_test
+        elif service == 'Phone':
+            return self.df_phone_only_train, self.df_phone_only_test
+        
+    def get_full_service_split(self, service: str):
+        if service == 'Internet':
+            return self.df_train_internet, self.df_test_internet
+        elif service == 'Phone':
+            return self.df_train_phone, self.df_test_phone
     
     def impute_missing_values(self, df_train, df_test):
-        """Impute missing values using KNN"""
+        """Impute missing values using KNN for numeric columns only."""
+        numeric_cols = df_train.select_dtypes(include=['float64', 'int64']).columns
+
+        # Apply imputer only to numeric columns
         imputer = KNNImputer(n_neighbors=10)
-        df_train[:] = imputer.fit_transform(df_train)
-        df_test[:] = imputer.transform(df_test)
-        
+        df_train_numeric = pd.DataFrame(
+            imputer.fit_transform(df_train[numeric_cols]),
+            columns=numeric_cols,
+            index=df_train.index
+        )
+        df_test_numeric = pd.DataFrame(
+            imputer.transform(df_test[numeric_cols]),
+            columns=numeric_cols,
+            index=df_test.index
+        )
+
+        # Replace numeric columns in original DataFrames
+        df_train.update(df_train_numeric)
+        df_test.update(df_test_numeric)
+
         return df_train, df_test
     
-    def revert_to_booleans(self, df):
-        """Convert numerical columns back to boolean"""
-        bool_features = [col for col in df.columns if col not in self.num_col]
-        for col in bool_features:
-            if col in df.columns:
-                df[col] = df[col].astype('boolean')
-        return df
+
 
 

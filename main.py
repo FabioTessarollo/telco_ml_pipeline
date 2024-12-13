@@ -22,18 +22,12 @@ df_phone.columns = df_phone.columns.str.lower().str.replace(' ', '_')
 
 # Split and process data
 splitter = DataSplitter(df_internet, df_phone, 0.2)
-df_train_internet, df_test_internet, df_train_phone, df_test_phone = splitter.train_test_split()
+splitter.train_test_split()
+df_train_internet_only, df_test_internet_only = splitter.get_only_service_split('Internet')
 
 # Impute and revert to booleans
-df_train_internet, df_test_internet = splitter.impute_missing_values(df_train_internet, df_test_internet)
-df_train_phone, df_test_phone = splitter.impute_missing_values(df_train_phone, df_test_phone)
+df_train_internet_only, df_test_internet_only = splitter.impute_missing_values(df_train_internet_only, df_test_internet_only)
 
-df_train_internet = splitter.revert_to_booleans(df_train_internet)
-df_test_internet = splitter.revert_to_booleans(df_test_internet)
-df_train_phone = splitter.revert_to_booleans(df_train_phone)
-df_test_phone = splitter.revert_to_booleans(df_test_phone)
-
-df_train_internet.to_csv('preprocessed_data/df_train_internet.csv', index = False)
-df_test_internet.to_csv('preprocessed_data/df_test_internet.csv', index = False)
-df_train_phone.to_csv('preprocessed_data/df_train_phone.csv', index = False)
-df_test_phone.to_csv('preprocessed_data/df_test_phone.csv', index = False)
+# Export
+df_train_internet_only.to_csv('preprocessed_data/df_train_internet_only.csv', index = False)
+df_test_internet_only.to_csv('preprocessed_data/df_test_internet_only.csv', index = False)
